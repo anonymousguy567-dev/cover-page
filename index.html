@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUET Cover Page Generator - Theme Toggle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* --- DYNAMIC THEME VARIABLES --- */
+        :root { 
+            --bg-color: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
+            --text-color: #fff;
+            --glass-bg: rgba(0, 0, 0, 0.85); 
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.15);
+            --label-color: #aaa;
+            --primary-color: #00d2ff;
+            --secondary-color: #ff0055;
+            --card-shadow: 0 25px 50px rgba(0,0,0,0.7);
+        }
+
+        /* LIGHT MODE OVERRIDE */
+        body.light-mode {
+            --bg-color: #f0f2f5;
+            --text-color: #1a1a1a;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --input-bg: #fff;
+            --input-border: #ccc;
+            --label-color: #555;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body { 
+            margin: 0; padding: 20px; font-family: 'Poppins', sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); min-height: 100vh; display: flex; justify-content: center;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            position: fixed; top: 20px; right: 20px;
+            padding: 10px 15px; border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg); color: var(--text-color);
+            cursor: pointer; font-weight: 600; font-size: 14px;
+            backdrop-filter: blur(10px); z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .container { 
+            display: flex; flex-direction: column; align-items: center; 
+            gap: 40px; width: 100%; max-width: 1200px; 
+        }
+        
+        .glass-card { 
+            background: var(--glass-bg); backdrop-filter: blur(30px); 
+            -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); 
+            border-radius: 30px; padding: 30px; width: 100%; max-width: 900px; 
+            box-shadow: var(--card-shadow); 
+        }
+        
+        .lively-title { 
+            text-align: center; font-weight: 800; font-size: clamp(1.5rem, 5vw, 2.5rem); 
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; 
+        }
+
+        .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .field { display: flex; flex-direction: column; }
+        label { font-size: 11px; text-transform: uppercase; color: var(--label-color); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
+        
+        input, select { 
+            padding: 12px; background: var(--input-bg); 
+            border: 1px solid var(--input-border); border-radius: 12px; 
+            color: var(--text-color); outline: none; font-size: 0.95rem; transition: 0.3s; 
+        }
+        
+        select option { background-color: var(--glass-bg); color: var(--text-color); }
+
+        .preview-gallery { 
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 35px; 
+            width: 100%; max-width: 1100px; margin-top: 20px; 
+        }
+        .preview-item { 
+            background: var(--glass-bg); border-radius: 25px; padding: 20px; 
+            text-align: center; border: 1px solid var(--glass-border); width: 340px; 
+            box-shadow: var(--card-shadow); transition: 0.3s;
+            overflow: hidden;
+        }
+        
+        .page-preview-container { 
+            width: 210mm; height: 297mm; background: white; 
+            transform: scale(0.14); transform-origin: top center;
+            position: relative; left: 50%; margin-left: -105mm;
+            margin-bottom: -255mm; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;
+        }
+        
+        .select-btn { 
+            width: 100%; padding: 14px; border: none; border-radius: 15px; 
+            background: linear-gradient(45deg, var(--primary-color), #3a7bd5); 
+            color: white; font-weight: 800; cursor: pointer; margin-top: 15px;
+        }
+
+        /* PDF TEMPLATES (ALWAYS STAY WHITE FOR PRINT) */
+        #pdf-hidden-storage { position: absolute; left: -9999px; }
+        .pdf-page { 
+            width: 210mm; height: 297mm; background: white !important; color: black !important; 
+            padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; 
+            position: relative; 
+        }
+
+        .p1-logo { width: 240px; display: block; margin: 0 auto; }
+        .p1-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid black; margin-top: 20px; }
+        .p1-box { padding: 15px; border: 0.8px solid black; min-height: 150px; }
+
+        .p2-header-top { text-align: center; font-family: 'Playfair Display', serif; font-style: italic; font-size: 17px; margin-bottom: 10px; }
+        .p2-header-flex { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+        .p2-logo-small { width: 90px; height: auto; }
+        .p2-uni { font-size: 19px; font-weight: bold; line-height: 1.2; text-align: left; }
+        .p2-dept { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; margin: 10px 0; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 4px; }
+        .p2-type { font-size: 22px; font-weight: bold; text-align: center; margin: 25px 0 10px 0; }
+        .p2-course-info { text-align: center; font-size: 18px; margin: 5px 0; line-height: 1.5; font-weight: bold; }
+        .p2-title-box { border-top: 2px solid black; border-bottom: 2px solid black; padding: 20px 10px; text-align: center; margin: 25px 0; font-size: 20px; }
+        .p2-section-title { font-size: 21px; font-weight: bold; font-style: italic; text-align: center; margin-top: 35px; margin-bottom: 15px; display: inline-block; width: 100%; }
+        .underline-span { border-bottom: 1.5px solid black; padding-bottom: 3px; }
+        .p2-center-info { text-align: center; font-size: 18px; margin: 5px 0; line-height: 1.4; }
+        .p2-footer-date { border-top: 1.5px solid black; margin-top: 50px; padding-top: 15px; text-align: center; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">☀️ Light Mode</button>
+
+<div class="container">
+    <div class="glass-card">
+        <h1 class="lively-title">Cover Page Generator - RUET</h1>
+        <div class="input-form">
+            <div class="input-group">
+                <div class="field">
+                    <label>Department</label>
+                    <select id="in-dept" onchange="syncData(); toggleSmartCourse();">
+                        <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+                        <option value="Chemical Engineering">Chemical Engineering (ChE)</option>
+                        <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
+                        <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
+                        <option value="Civil Engineering">Civil Engineering (CE)</option>
+                        <option value="Mechatronics Engineering">Mechatronics Engineering (MTE)</option>
+                        <option value="Industrial & Production Engineering">Industrial & Production Engineering (IPE)</option>
+                        <option value="Ceramic & Metallurgical Engineering">Ceramic & Metallurgical Engineering (CME)</option>
+                        <option value="Materials Science & Engineering">Materials Science & Engineering (MSE)</option>
+                        <option value="Urban & Regional Planning">Urban & Regional Planning (URP)</option>
+                        <option value="Architecture">Architecture (Arch)</option>
+                        <option value="Building Engineering & Construction Management">Building Engineering & Construction (BECM)</option>
+                        <option value="Electrical & Computer Engineering">Electrical & Computer Engineering (ECE)</option>
+                        <option value="Electronics & Telecommunication Engineering">Electronics & Telecommunication (ETE)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Report Type</label>
+                    <select id="in-type" onchange="syncData()">
+                        <option value="ASSIGNMENT">Assignment</option>
+                        <option value="LAB REPORT">Lab Report</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field" style="margin-bottom:15px;"><label>Topic Name (Optional)</label><input type="text" id="in-topic" oninput="syncData()"></div>
+            <div class="input-group">
+                <div class="field"><label>Your Name</label><input type="text" id="in-name" oninput="syncData()"></div>
+                <div class="field"><label>Roll Number</label><input type="text" id="in-roll" oninput="syncData()"></div>
+                <div class="field"><label>Section</label><input type="text" id="in-sec" oninput="syncData()"></div>
+                <div class="field">
+                    <label>Semester</label>
+                    <select id="in-sem" onchange="syncData(); populateCourses();">
+                        <option value="1st Year odd Semester">1st Year Odd Semester</option>
+                        <option value="1st Year even Semester">1st Year Even Semester</option>
+                        <option value="2nd Year odd Semester">2nd Year Odd Semester</option>
+                        <option value="2nd Year even Semester">2nd Year Even Semester</option>
+                        <option value="3rd Year odd Semester">3rd Year Odd Semester</option>
+                        <option value="3rd Year even Semester">3rd Year Even Semester</option>
+                        <option value="4th Year odd Semester">4th Year Odd Semester</option>
+                        <option value="4th Year even Semester">4th Year Even Semester</option>
+                    </select>
+                </div>
+                <div class="field"><label>Session</label><input type="text" id="in-sess" oninput="syncData()"></div>
+            </div>
+
+            <div id="smart-course-field" class="field" style="display:none; margin-bottom:15px;">
+                <label>Select Course</label>
+                <select id="smart-course-select" onchange="applySmartCourse()">
+                    <option value="">-- Choose from Database --</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <div class="field"><label>Teacher's Name</label><input type="text" id="in-tname" oninput="syncData()"></div>
+                <div class="field"><label>Designation</label><input type="text" id="in-desig" oninput="syncData()"></div>
+                <div class="field"><label>Course No.</label><input type="text" id="in-cno" oninput="syncData()"></div>
+                <div class="field"><label>Submission Date</label><input type="date" id="in-date" onchange="syncData()"></div>
+            </div>
+            <div class="field" style="margin-top:10px;"><label>Course Title</label><input type="text" id="in-ctitle" oninput="syncData()"></div>
+        </div>
+    </div>
+
+    <div class="preview-gallery">
+        <div class="preview-item">
+            <h3 style="margin-bottom:15px;">Preview 1 (Grid)</h3>
+            <div class="page-preview-container" id="mini-1"></div>
+            <button class="select-btn" onclick="downloadPDF(1)">Download Preview 1</button>
+        </div>
+        <div class="preview-item">
+            <h3 style="margin-bottom:15px;">Preview 2 (Classic Center)</h3>
+            <div class="page-preview-container" id="mini-2"></div>
+            <button class="select-btn" onclick="downloadPDF(2)">Download Preview 2</button>
+        </div>
+    </div>
+</div>
+
+<div id="pdf-hidden-storage">
+    <div class="pdf-page" id="temp-1">
+        <div style="text-align:center;">
+            <p style="font-style:italic; font-size:18px;">"Heaven's Light is Our Guide"</p>
+            <img src="https://i.ibb.co.com/Cp1Km13H/Screenshot-2026-01-20-015616.jpg" class="p1-logo">
+            <h1 style="font-size:22px; margin:5px 0;">RAJSHAHI UNIVERSITY OF ENGINEERING & TECHNOLOGY</h1>
+            <h2 style="font-size:20px; text-transform:uppercase;">DEPARTMENT OF <span class="out-dept"></span></h2>
+        </div>
+        <div style="text-align:center; margin:30px 0; font-size:24px; font-weight:bold;" class="out-type-box"></div>
+        <div style="font-size:21px; margin:30px 0; border-top:1.5px solid black; border-bottom:1.5px solid black; padding:15px 0;" class="out-topic-wrap">
+            <b>Topic:</b> <span class="out-topic"></span>
+        </div>
+        <div class="p1-grid">
+            <div class="p1-box">
+                <h4 style="font-size:19px; font-style:italic; margin-bottom:10px;"><span style="border-bottom: 1.5px solid black; padding-bottom: 2px;">Submitted by</span></h4>
+                <div style="font-size:17px; margin:5px 0;">Name: <span class="out-name"></span></div>
+                <div style="font-size:17px; margin:5px 0;">Roll: <b class="out-roll"></b></div>
+                <div style="font-size:17px; margin:5px 0;" class="out-sec-wrap">Section: <span class="out-sec"></span></div>
+                <div style="font-size:17px; margin:5px 0;">Semester: <span class="out-sem"></span></div>
+                <div style="font-size:17px; margin:5px 0;">Session: <span class="out-sess"></span></div>
+            </div>
+            <div class="p1-box">
+                <h4 style="font-size:19px; font-style:italic; margin-bottom:10px;"><span style="border-bottom: 1.5px solid black; padding-bottom: 2px;">Submitted to</span></h4>
+                <div style="font-weight:bold; font-size:18px;" class="out-tname"></div>
+                <div style="font-size:16px;" class="out-desig"></div>
+                <div style="font-size:16px;">Department of <span class="out-dept"></span></div>
+                <div style="font-size:16px;">RUET</div>
+            </div>
+        </div>
+        <div style="border:2px solid black; padding:20px;text-align: center; margin-top:35px; font-size:18px; line-height:1.7;">
+            <div><b>Course No:</b> <span class="out-cno"></span></div>
+            <div><b>Course Title:</b> <span class="out-ctitle"></span></div>
+            <div><b>Submission Date:</b> <span class="out-date"></span></div>
+        </div>
+    </div>
+
+    <div class="pdf-page" id="temp-2">
+        <p class="p2-header-top">"Heaven's Light is Our Guide"</p>
+        <div class="p2-header-flex">
+            <img src="https://i.ibb.co.com/Cp1Km13H/Screenshot-2026-01-20-015616.jpg" class="p2-logo-small">
+            <div class="p2-uni">RAJSHAHI UNIVERSITY OF ENGINEERING & TECHNOLOGY, RAJSHAHI</div>
+        </div>
+        <div style="text-align:center;"><div class="p2-dept">DEPARTMENT OF <span class="out-dept"></span></div></div>
+        <div class="p2-type out-type-box"></div>
+        <div class="p2-course-info">Course No: <span class="out-cno"></span></div>
+        <div class="p2-course-info">Course Title: <span class="out-ctitle"></span></div>
+        <div class="p2-title-box out-topic-wrap"><div class="out-topic"></div></div>
+        
+        <div class="p2-section-title"><span class="underline-span">Submitted By</span></div>
+        <div class="p2-center-info out-name" style="font-size:20px; font-weight:bold;"></div>
+        <div class="p2-center-info"> <span class="out-roll" style="font-weight:bold;"></span></div>
+        <div class="p2-center-info out-sec-wrap">Section: <span class="out-sec"></span></div>
+        <div class="p2-center-info"> <span class="out-sem"></span></div>
+        <div class="p2-center-info">Session: <span class="out-sess"></span></div>
+        
+        <div class="p2-section-title"><span class="underline-span">Submitted To</span></div>
+        <div class="p2-center-info out-tname" style="font-weight:bold; font-size:20px;"></div>
+        <div class="p2-center-info out-desig"></div>
+        <div class="p2-center-info">Department of <span class="out-dept"></span></div>
+        <div class="p2-center-info">RUET</div>
+        <div class="p2-footer-date">Date of Submission: <span class="out-date"></span></div>
+    </div>
+</div>
+
+<script>
+// Theme Toggle Function
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('themeBtn');
+    body.classList.toggle('light-mode');
+    
+    if (body.classList.contains('light-mode')) {
+        btn.innerHTML = "🌙 Dark";
+        localStorage.setItem('theme', 'light');
+    } else {
+        btn.innerHTML = "☀️ Light";
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Check saved theme
+if (localStorage.getItem('theme') === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('themeBtn').innerHTML = "🌙 Dark";
+}
+
+// --- DATABASE & LOGIC ---
+const courseDatabase = {
+    "Mechanical Engineering": {
+        "1st Year odd Semester": [
+            {no: "Chem 1121", title: "Chemistry"}, {no: "Phy 1121", title: "Physics"}, {no: "Hum 1121", title: "Economics and Sociology"},
+            {no: "Math 1121", title: "Differential Calculus and Geometry"}, {no: "ME 1101", title: "Basic Mechanical Engineering"},
+            {no: "Chem 1122", title: "Chemistry Sessional"}, {no: "Phy 1122", title: "Physics Sessional"}, 
+            {no: "ME 1102", title: "Basic Mechanical Engineering Sessional"}, {no: "ME 1100", title: "Mechanical Engineering Drawing"}, {no: "MES 1108", title: "Shop Practice"}
+        ],
+        "1st Year even Semester": [
+            {no: "Hum 1221", title: "Technical English"}, {no: "Math 1221", title: "Vector, Matrix and Integral Calculus"},
+            {no: "CSE 1281", title: "Computer and Programming Language"}, {no: "EEE 1281", title: "Electrical Circuits"},
+            {no: "ME 1207", title: "Production Process"}, {no: "Hum 1222", title: "Technical English Sessional"},
+            {no: "CSE 1282", title: "Computer and Programming Language Sessional"}, {no: "EEE 1282", title: "Electrical Circuits Sessional"}, {no: "ME 1208", title: "Production Process Sessional"}
+        ],
+        "2nd Year odd Semester": [
+            {no: "Hum 2121", title: "Accounting and Industrial law"}, {no: "Math 2121", title: "Differential Equation, Complex variable and harmonic Analysis"},
+            {no: "ME 2101", title: "Thermodynamics"}, {no: "ME 2103", title: "Engineering Mechanics-I"}, {no: "ME 2105", title: "Fluid Mechanics-I"},
+            {no: "ME 2102", title: "Thermodynamics Sessional"}, {no: "ME 2106", title: "Fluid Mechanics-I Sessional"}, {no: "ME 2100", title: "Computer Aided Drawing"}
+        ],
+        "2nd Year even Semester": [
+            {no: "Math 2221", title: "Numerical Analysis and statistics"}, {no: "EEE 2281", title: "Electrical Machines and Electronics"},
+            {no: "ME 2203", title: "Engineering Mechanics-II"}, {no: "ME 2207", title: "Measurement, Quality Control and Materials Handling"},
+            {no: "ME 2209", title: "Mechanics of Solids"}, {no: "EEE 2282", title: "Electrical Machines and Electronics Sessional"},
+            {no: "Math 2222", title: "Numerical Analysis and statistics Sessional"}, {no: "ME 2204", title: "Engineering Mechanics Sessional"},
+            {no: "ME 2208", title: "Measurement, Quality Control and Materials Handling Sessional"}, {no: "ME 2210", title: "Mechanics of Solids Sessional"}
+        ],
+        "3rd Year odd Semester": [
+            {no: "ME 3101", title: "Heat Transfer-I"}, {no: "ME 3105", title: "Fluid Mechanics-II"}, {no: "ME 3109", title: "Design of Machine Elements-I"},
+            {no: "ME 3115", title: "Instrumentation and Control"}, {no: "ME 3119", title: "Engineering Materials and Metallurgy"},
+            {no: "ME 3106", title: "Fluid Mechanics-II Sessional"}, {no: "ME 3110", title: "Design of Machine Elements-I Sessional"},
+            {no: "ME 3116", title: "Instrumentation and Control Sessional"}, {no: "ME 3120", title: "Engineering Materials and Metallurgy Sessional"}, {no: "ME 3114", title: "CFD Sessional"}
+        ],
+        "3rd Year even Semester": [
+            {no: "ME 3201", title: "Heat Transfer-II"}, {no: "ME 3203", title: "Machine Dynamics and Vibration"}, {no: "ME 3209", title: "Design of Machine Elements-II"},
+            {no: "ME 3213", title: "Optional-I"}, {no: "ME 3215", title: "Basic Mechatronics Engineering"},
+            {no: "ME 3202", title: "Heat Transfer-II Sessional"}, {no: "ME 3204", title: "Machine Dynamics and Vibration Sessional"},
+            {no: "ME 3210", title: "Design of Machine Elements-II Sessional"}, {no: "ME 3200", title: "Case Study in Mechanical Engineering"}, {no: "ME 3216", title: "Basic Mechatronics Engineering Sessional"}
+        ],
+        "4th Year odd Semester": [
+            {no: "ME 4101", title: "Applied Thermodynamics-I"}, {no: "ME 4111", title: "Refrigeration and Mechanical Equipment in Buildings"},
+            {no: "ME 4117", title: "Production Planning and Control"}, {no: "ME 4121", title: "Power Plant Engineering"}, {no: "ME 4113", title: "Optional-II"},
+            {no: "ME 4102", title: "Applied Thermodynamics-I Sessional"}, {no: "ME 4112", title: "Refrigeration and Mechanical Equipment in Buildings Sessional"},
+            {no: "ME 4100", title: "Project and Thesis"}, {no: "ME 4110", title: "Seminar"}, {no: "ME 4120", title: "Industrial Training"}
+        ],
+        "4th Year even Semester": [
+            {no: "ME 4201", title: "Applied Thermodynamics-II"}, {no: "ME 4205", title: "Fluid Machinery"}, {no: "ME 4207", title: "Machine Tools and Tool Design"},
+            {no: "ME 4217", title: "Industrial Management"}, {no: "ME 4213", title: "Optional-III"},
+            {no: "ME 4206", title: "Fluid Machinery Sessional"}, {no: "ME 4208", title: "Machine Tools and Tool Design Sessional"}, {no: "ME 4200", title: "Project and Thesis"}, {no: "ME 4210", title: "Seminar"}
+        ]
+    },
+    "Chemical Engineering": {
+        "1st Year odd Semester": [
+            {no: "Chem 1129", title: "Chemistry I"}, {no: "Phy 1129", title: "Physics"}, {no: "Hum 1129", title: "Economics and Sociology"},
+            {no: "Math 1129", title: "Differential Calculus and Geometry"}, {no: "CFPE 1101", title: "Introduction to Chemical Engineering"},
+            {no: "Chem 1130", title: "Chemistry I Sessional"}, {no: "Phy 1130", title: "Physics Sessional"}, {no: "ME 1140", title: "Engineering Drawing"}, {no: "MES 1158", title: "Workshop Practice"}
+        ],
+        "1st Year even Semester": [
+            {no: "Chem 1229", title: "Chemistry II"}, {no: "Hum 1229", title: "Technical English"}, {no: "Math 1229", title: "Integral Calculus and Differential Equation"},
+            {no: "EEE 1289", title: "Electrical Circuits"}, {no: "CFPE 1211", title: "Introduction to Food Process Engineering"},
+            {no: "Chem 1230", title: "Chemistry II Sessional"}, {no: "Hum 1230", title: "Technical English Sessional"}, {no: "EEE 1290", title: "Electrical Circuits Sessional"}, {no: "CFPE 1200", title: "Introduction to Chemical and Food Process Engineering Sessional"}
+        ],
+        "2nd Year odd Semester": [
+            {no: "Math 2129", title: "Vector Analysis, Matrices and Laplace Transforms"}, {no: "CFPE 2101", title: "Chemical Thermodynamics"},
+            {no: "ME 2157", title: "Engineering Mechanics"}, {no: "ME 2167", title: "Heat Transfer"}, {no: "EEE 2189", title: "Electrical Machines and Electronics"},
+            {no: "CFPE 2102", title: "Chemical Thermodynamics Sessional"}, {no: "ME 2168", title: "Heat Transfer Sessional"}, {no: "EEE 2190", title: "Electrical Machines and Electronics Sessional"}
+        ],
+        "2nd Year even Semester": [
+            {no: "Math 2229", title: "Numerical Analysis and Statistics"}, {no: "CFPE 2211", title: "Principles of Food Processing and Preservation"},
+            {no: "ME 2257", title: "Fluid Mechanics"}, {no: "ME 2267", title: "Solid Mechanics"}, {no: "CSE 2289", title: "Computer Programming and Applications"},
+            {no: "Math 2230", title: "Numerical Analysis and Statistics Sessional"}, {no: "ME 2258", title: "Fluid Mechanics Sessional"}, {no: "ME 2268", title: "Solid Mechanics Sessional"}, {no: "CSE 2290", title: "Computer Programming and Applications Sessional"}
+        ],
+        "3rd Year odd Semester": [
+            {no: "ChE 3101", title: "Mass Transfer I"}, {no: "ChE 3103", title: "Solution Thermodynamics"}, {no: "ChE 3105", title: "Reaction Engineering"},
+            {no: "ChE 3107", title: "Unit Operations in Chemical Engineering"}, {no: "ChE 3109", title: "Material and Energy Balance"},
+            {no: "ChE 3100", title: "Computational Techniques in Chemical Engineering Sessional"}, {no: "ChE 3106", title: "Solution Thermodynamics and Reaction Engineering Sessional"}, {no: "ChE 3108", title: "Unit Operations in Chemical Engineering Sessional"}
+        ],
+        "3rd Year even Semester": [
+            {no: "ChE 3201", title: "Mass Transfer II"}, {no: "ChE 3203", title: "Particle Technology"}, {no: "ChE 3205", title: "Chemical Process Technology"},
+            {no: "ChE 3207", title: "Environmental Engineering and Waste Management"}, {no: "Hum 3229", title: "Principles of Accounting"},
+            {no: "ChE 3200", title: "Chemical Process Modeling and Simulation Sessional"}, {no: "ChE 3204", title: "Mass Transfer and Particle Technology Sessional"}, {no: "ChE 3208", title: "Environmental Engineering and Waste Management Sessional"}, {no: "ChE 3220", title: "Case Study in Chemical Engineering"}
+        ],
+        "4th Year odd Semester": [
+            {no: "ChE 4101", title: "Instrumental Methods and Process Control"}, {no: "ChE 4103", title: "Transport Phenomena"}, {no: "ChE 4105", title: "Process Design"},
+            {no: "Chem 4129", title: "Chemistry III"}, {no: "ChE 4121", title: "Elective I"},
+            {no: "ChE 4100", title: "Project and Thesis"}, {no: "ChE 4102", title: "Instrumental Methods and Process Control Sessional"}, {no: "ChE 4110", title: "Seminar"}, {no: "ChE 4120", title: "Capstone Project"}, {no: "ChE 4130", title: "Industrial Training"}, {no: "Chem 4130", title: "Chemistry III Sessional"}
+        ],
+        "4th Year even Semester": [
+            {no: "ChE 4201", title: "Economics and Management of Chemical Process Industries"}, {no: "ChE 4203", title: "Corrosion Engineering"},
+            {no: "ChE 4205", title: "Project Engineering and Professional Ethics"}, {no: "ChE 4207", title: "Safety and Health in Chemical Industries"}, {no: "ChE 4221", title: "Elective II"},
+            {no: "ChE 4200", title: "Project and Thesis"}, {no: "ChE 4210", title: "Seminar"}, {no: "ChE 4220", title: "Capstone Project"}
+        ]
+    }
+};
+    // Add other departments here similarly
+
+
+function toggleSmartCourse() {
+    const dept = document.getElementById('in-dept').value;
+    const smartField = document.getElementById('smart-course-field');
+    if (courseDatabase[dept]) {
+        smartField.style.display = "block";
+        populateCourses();
+    } else {
+        smartField.style.display = "none";
+    }
+}
+
+function populateCourses() {
+    const dept = document.getElementById('in-dept').value;
+    const sem = document.getElementById('in-sem').value;
+    const select = document.getElementById('smart-course-select');
+    select.innerHTML = '<option value="">-- Choose from Database --</option>';
+    
+    if (courseDatabase[dept] && courseDatabase[dept][sem]) {
+        courseDatabase[dept][sem].forEach(course => {
+            let opt = document.createElement('option');
+            opt.value = JSON.stringify(course);
+            opt.innerText = `${course.no}: ${course.title}`;
+            select.appendChild(opt);
+        });
+    }
+}
+
+function applySmartCourse() {
+    const val = document.getElementById('smart-course-select').value;
+    if (val) {
+        const course = JSON.parse(val);
+        document.getElementById('in-cno').value = course.no;
+        document.getElementById('in-ctitle').value = course.title;
+        syncData();
+    }
+}
+
+function syncData() {
+    const data = {
+        dept: document.getElementById('in-dept').value,
+        type: document.getElementById('in-type').value,
+        topic: document.getElementById('in-topic').value,
+        name: document.getElementById('in-name').value,
+        roll: document.getElementById('in-roll').value,
+        sec: document.getElementById('in-sec').value,
+        sem: document.getElementById('in-sem').value,
+        sess: document.getElementById('in-sess').value,
+        tname: document.getElementById('in-tname').value,
+        desig: document.getElementById('in-desig').value,
+        cno: document.getElementById('in-cno').value,
+        ctitle: document.getElementById('in-ctitle').value,
+        date: document.getElementById('in-date').value
+    };
+
+    const formattedDate = data.date ? data.date.split("-").reverse().join("/") : "dd/mm/yyyy";
+    const allTemps = [document.getElementById('temp-1'), document.getElementById('temp-2')];
+    
+    allTemps.forEach(t => {
+        t.querySelectorAll('.out-dept').forEach(el => el.innerText = data.dept.toUpperCase());
+        t.querySelectorAll('.out-type-box').forEach(el => el.innerText = `[${data.type}]`);
+        t.querySelectorAll('.out-topic').forEach(el => el.innerText = data.topic || "Topic Name");
+        t.querySelectorAll('.out-name').forEach(el => el.innerText = data.name || "Student Name");
+        t.querySelectorAll('.out-roll').forEach(el => el.innerText = data.roll || "Roll No");
+        t.querySelectorAll('.out-sem').forEach(el => el.innerText = data.sem);
+        t.querySelectorAll('.out-sess').forEach(el => el.innerText = data.sess || "20XX-XX");
+        t.querySelectorAll('.out-tname').forEach(el => el.innerText = data.tname || "Teacher's Name");
+        t.querySelectorAll('.out-desig').forEach(el => el.innerText = data.desig || "Designation");
+        t.querySelectorAll('.out-cno').forEach(el => el.innerText = data.cno || "No");
+        t.querySelectorAll('.out-ctitle').forEach(el => el.innerText = data.ctitle || "Course Title Name");
+        t.querySelectorAll('.out-date').forEach(el => el.innerText = formattedDate);
+        t.querySelectorAll('.out-topic-wrap').forEach(el => el.style.visibility = data.topic ? "visible" : "hidden");
+        t.querySelectorAll('.out-sec-wrap').forEach(el => {
+            el.style.display = data.sec ? "block" : "none";
+            if(data.sec) el.querySelector('.out-sec').innerText = data.sec;
+        });
+    });
+
+    document.getElementById('mini-1').innerHTML = '';
+    document.getElementById('mini-1').appendChild(allTemps[0].cloneNode(true));
+    document.getElementById('mini-2').innerHTML = '';
+    document.getElementById('mini-2').appendChild(allTemps[1].cloneNode(true));
+}
+
+function downloadPDF(id) {
+    const element = document.getElementById(`temp-${id}`);
+    const type = document.getElementById('in-type').value;
+    const opt = {
+        margin: 0,
+        filename: `RUET_Cover_V${id}_${type}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+toggleSmartCourse();
+syncData();
+</script>
+</body>
+</html>
+
