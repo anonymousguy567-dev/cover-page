@@ -21,7 +21,6 @@
             --card-shadow: 0 25px 50px rgba(0,0,0,0.7);
         }
 
-        /* LIGHT MODE OVERRIDE */
         body.light-mode {
             --bg-color: #f0f2f5;
             --text-color: #1a1a1a;
@@ -40,7 +39,6 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        /* Theme Toggle Button */
         .theme-toggle-btn {
             position: fixed; top: 20px; right: 20px;
             padding: 10px 15px; border-radius: 50px;
@@ -86,7 +84,7 @@
             width: 100%; max-width: 1200px; margin-top: 20px; 
         }
         .preview-item { 
-            background: var(--glass-bg); border-radius: 25px; padding: 20px; 
+            background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 25px; padding: 20px; 
             text-align: center; border: 1px solid var(--glass-border); width: 340px; 
             box-shadow: var(--card-shadow); transition: 0.3s;
             overflow: hidden;
@@ -106,24 +104,19 @@
             color: white; font-weight: 800; cursor: pointer; margin-top: 15px;
         }
 
-        /* --- WATERMARK STYLING --- */
         .watermark-box {
             position: absolute;
-            top: 2.10in; /* নির্দেশিত পজিশন */
-            left: 50%;
+            top: 2.10in; left: 50%;
             transform: translateX(-50%);
-            width: 7.10in; /* নির্দেশিত মাপ */
-            height: 7.40in; /* নির্দেশিত মাপ */
-            opacity: 0.20; /* ৭৫% ট্রান্সপারেন্সি */
-            z-index: 0;
+            width: 7.10in; height: 7.40in;
+            opacity: 0.25; z-index: 0;
             pointer-events: none;
         }
         .watermark-box img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* PDF TEMPLATES (ALWAYS STAY WHITE FOR PRINT) */
         #pdf-hidden-storage { position: absolute; left: -9999px; }
         .pdf-page { 
-            width: 210mm; height: 297mm; background: white !important; color: black !important; 
+            width: 210mm; height: 297mm; max-height: 297mm; background: white !important; color: black !important; 
             padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; 
             position: relative; overflow: hidden;
         }
@@ -139,7 +132,7 @@
         .p2-dept { font-size: 18px; font-weight: bold; text-align: center; text-transform: uppercase; margin: 10px 0; border-bottom: 2px solid #000; display: inline-block; padding-bottom: 4px; position: relative; z-index: 1; }
         .p2-type { font-size: 22px; font-weight: bold; text-align: center; margin: 25px 0 10px 0; position: relative; z-index: 1; }
         .p2-course-info { text-align: center; font-size: 18px; margin: 5px 0; line-height: 1.5; font-weight: bold; position: relative; z-index: 1; }
-        .p2-title-box { border-top: 2px solid black; border-bottom: 2px solid black; padding: 20px 10px; text-align: center; margin: 25px 0; font-size: 20px;font-weight: bold; position: relative; z-index: 1; }
+        .p2-title-box { border-top: 2px solid black; border-bottom: 2px solid black; padding: 20px 10px; text-align: center; margin: 25px 0; font-size: 20px; font-weight: bold; position: relative; z-index: 1; }
         .p2-section-title { font-size: 21px; font-weight: bold; font-style: italic; text-align: center; margin-top: 35px; margin-bottom: 15px; display: inline-block; width: 100%; position: relative; z-index: 1; }
         .underline-span { border-bottom: 1.5px solid black; padding-bottom: 3px; }
         .p2-center-info { text-align: center; font-size: 18px; margin: 5px 0; line-height: 1.4; position: relative; z-index: 1; }
@@ -176,13 +169,20 @@
                 </div>
                 <div class="field">
                     <label>Report Type</label>
-                    <select id="in-type" onchange="syncData()">
+                    <select id="in-type" onchange="syncData(); toggleLabFields();">
                         <option value="ASSIGNMENT">Assignment</option>
                         <option value="LAB REPORT">Lab Report</option>
                     </select>
                 </div>
             </div>
-            <div class="field" style="margin-bottom:15px;"><label>Topic Name (Optional)</label><input type="text" id="in-topic" oninput="syncData()"></div>
+
+            <div id="lab-fields" class="input-group" style="display:none;">
+                <div class="field"><label>Experiment No.</label><input type="text" id="in-expt-no" placeholder="Ex: 01" oninput="syncData()"></div>
+                <div class="field"><label>Date of Experiment</label><input type="date" id="in-expt-date" onchange="syncData()"></div>
+            </div>
+
+            <div class="field" style="margin-bottom:15px;"><label id="topic-label">Topic Name (Optional)</label><input type="text" id="in-topic" oninput="syncData()"></div>
+            
             <div class="input-group">
                 <div class="field"><label>Your Name</label><input type="text" id="in-name" oninput="syncData()"></div>
                 <div class="field"><label>Roll Number</label><input type="text" id="in-roll" oninput="syncData()"></div>
@@ -221,21 +221,9 @@
     </div>
 
     <div class="preview-gallery">
-        <div class="preview-item">
-            <h3 style="margin-bottom:15px;">Preview 1 (Grid)</h3>
-            <div class="page-preview-container" id="mini-1"></div>
-            <button class="select-btn" onclick="downloadPDF(1)">Download Preview 1</button>
-        </div>
-        <div class="preview-item">
-            <h3 style="margin-bottom:15px;">Preview 2 (Classic Center)</h3>
-            <div class="page-preview-container" id="mini-2"></div>
-            <button class="select-btn" onclick="downloadPDF(2)">Download Preview 2</button>
-        </div>
-        <div class="preview-item">
-            <h3 style="margin-bottom:15px;">Preview 3 (Watermark)</h3>
-            <div class="page-preview-container" id="mini-3"></div>
-            <button class="select-btn" onclick="downloadPDF(3)">Download Preview 3</button>
-        </div>
+        <div class="preview-item"><h3>Preview 1 (Grid)</h3><div class="page-preview-container" id="mini-1"></div><button class="select-btn" onclick="downloadPDF(1)">Download Design 1</button></div>
+        <div class="preview-item"><h3>Preview 2 (Classic)</h3><div class="page-preview-container" id="mini-2"></div><button class="select-btn" onclick="downloadPDF(2)">Download Design 2</button></div>
+        <div class="preview-item"><h3>Preview 3 (Watermark)</h3><div class="page-preview-container" id="mini-3"></div><button class="select-btn" onclick="downloadPDF(3)">Download Design 3</button></div>
     </div>
 </div>
 
@@ -249,7 +237,8 @@
         </div>
         <div style="text-align:center; margin:30px 0; font-size:24px; font-weight:bold;" class="out-type-box"></div>
         <div style="font-size:21px; margin:30px 0; border-top:1.5px solid black; border-bottom:1.5px solid black; padding:15px 0;" class="out-topic-wrap">
-            <b>Topic:</b> <span class="out-topic"></span>
+            <div class="out-lab-no-wrap" style="margin-bottom: 8px;"><b>Experiment No:</b> <span class="out-expt-no"></span></div>
+            <div class="out-lab-name-wrap"><b><span class="out-label">Topic</span>:</b> <span class="out-topic"></span></div>
         </div>
         <div class="p1-grid">
             <div class="p1-box">
@@ -271,6 +260,7 @@
         <div style="border:2px solid black; padding:20px;text-align: center; margin-top:35px; font-size:18px; line-height:1.7;">
             <div><b>Course No:</b> <span class="out-cno"></span></div>
             <div><b>Course Title:</b> <span class="out-ctitle"></span></div>
+            <div class="out-expt-date-wrap"><b>Date of Experiment:</b> <span class="out-expt-date"></span></div>
             <div><b>Submission Date:</b> <span class="out-date"></span></div>
         </div>
     </div>
@@ -285,7 +275,10 @@
         <div class="p2-type out-type-box"></div>
         <div class="p2-course-info">Course No: <span class="out-cno"></span></div>
         <div class="p2-course-info">Course Title: <span class="out-ctitle"></span></div>
-        <div class="p2-title-box out-topic-wrap"><div class="out-topic"></div></div>
+        <div class="p2-title-box out-topic-wrap">
+            <div class="out-lab-no-wrap" style="margin-bottom: 5px;">Experiment No: <span class="out-expt-no"></span></div>
+            <div class="out-lab-name-wrap"><span class="out-label">Topic</span>: <span class="out-topic"></span></div>
+        </div>
         <div class="p2-section-title"><span class="underline-span">Submitted By</span></div>
         <div class="p2-center-info out-name" style="font-size:20px; font-weight:bold;"></div>
         <div class="p2-center-info"> <span class="out-roll" style="font-weight:bold;"></span></div>
@@ -297,7 +290,10 @@
         <div class="p2-center-info out-desig"></div>
         <div class="p2-center-info">Department of <span class="out-dept"></span></div>
         <div class="p2-center-info">RUET</div>
-        <div class="p2-footer-date">Date of Submission: <span class="out-date"></span></div>
+        <div class="p2-footer-date">
+            <div class="out-expt-date-wrap" style="margin-bottom:5px;">Date of Experiment: <span class="out-expt-date"></span></div>
+            <div>Date of Submission: <span class="out-date"></span></div>
+        </div>
     </div>
 
     <div class="pdf-page" id="temp-3">
@@ -311,7 +307,10 @@
         <div class="p2-type out-type-box"></div>
         <div class="p2-course-info">Course No: <span class="out-cno"></span></div>
         <div class="p2-course-info">Course Title: <span class="out-ctitle"></span></div>
-        <div class="p2-title-box out-topic-wrap"><div class="out-topic"></div></div>
+        <div class="p2-title-box out-topic-wrap">
+            <div class="out-lab-no-wrap" style="margin-bottom: 5px;">Experiment No: <span class="out-expt-no"></span></div>
+            <div class="out-lab-name-wrap"><span class="out-label">Topic</span>: <span class="out-topic"></span></div>
+        </div>
         <div class="p2-section-title"><span class="underline-span">Submitted By</span></div>
         <div class="p2-center-info out-name" style="font-size:20px; font-weight:bold;"></div>
         <div class="p2-center-info"> <span class="out-roll" style="font-weight:bold;"></span></div>
@@ -323,7 +322,10 @@
         <div class="p2-center-info out-desig"></div>
         <div class="p2-center-info">Department of <span class="out-dept"></span></div>
         <div class="p2-center-info">RUET</div>
-        <div class="p2-footer-date">Date of Submission: <span class="out-date"></span></div>
+        <div class="p2-footer-date">
+            <div class="out-expt-date-wrap" style="margin-bottom:5px;">Date of Experiment: <span class="out-expt-date"></span></div>
+            <div>Date of Submission: <span class="out-date"></span></div>
+        </div>
     </div>
 </div>
 
@@ -331,12 +333,19 @@
 function toggleTheme() {
     const body = document.body; const btn = document.getElementById('themeBtn');
     body.classList.toggle('light-mode');
-    if (body.classList.contains('light-mode')) { btn.innerHTML = "🌙 Dark"; localStorage.setItem('theme', 'light'); }
-    else { btn.innerHTML = "☀️ Light"; localStorage.setItem('theme', 'dark'); }
+    if (body.classList.contains('light-mode')) { btn.innerHTML = "🌙"; localStorage.setItem('theme', 'light'); }
+    else { btn.innerHTML = "☀️"; localStorage.setItem('theme', 'dark'); }
 }
-if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeBtn').innerHTML = "🌙 Dark"; }
+if (localStorage.getItem('theme') === 'light') { document.body.classList.add('light-mode'); document.getElementById('themeBtn').innerHTML = "🌙"; }
 
-// Course Database & Logics Remain Exactly Same
+function toggleLabFields() {
+    const type = document.getElementById('in-type').value;
+    const labFields = document.getElementById('lab-fields');
+    const topicLabel = document.getElementById('topic-label');
+    if (type === "LAB REPORT") { labFields.style.display = "grid"; topicLabel.innerText = "Experiment Name"; }
+    else { labFields.style.display = "none"; topicLabel.innerText = "Topic Name (Optional)"; }
+}
+
 const courseDatabase = {
     "Mechanical Engineering": {
         "1st Year odd Semester": [{no: "Chem 1121", title: "Chemistry"}, {no: "Phy 1121", title: "Physics"}, {no: "Hum 1121", title: "Economics and Sociology"}, {no: "Math 1121", title: "Differential Calculus and Geometry"}, {no: "ME 1101", title: "Basic Mechanical Engineering"}, {no: "Chem 1122", title: "Chemistry Sessional"}, {no: "Phy 1122", title: "Physics Sessional"}, {no: "ME 1102", title: "Basic Mechanical Engineering Sessional"}, {no: "ME 1100", title: "Mechanical Engineering Drawing"}, {no: "MES 1108", title: "Shop Practice"}],
@@ -389,15 +398,34 @@ function syncData() {
         roll: document.getElementById('in-roll').value, sec: document.getElementById('in-sec').value,
         sem: document.getElementById('in-sem').value, sess: document.getElementById('in-sess').value,
         tname: document.getElementById('in-tname').value, desig: document.getElementById('in-desig').value,
-        cno: document.getElementById('in-cno').value, ctitle: document.getElementById('in-ctitle').value, date: document.getElementById('in-date').value
+        cno: document.getElementById('in-cno').value, ctitle: document.getElementById('in-ctitle').value, date: document.getElementById('in-date').value,
+        exptNo: document.getElementById('in-expt-no') ? document.getElementById('in-expt-no').value : "",
+        exptDate: document.getElementById('in-expt-date') ? document.getElementById('in-expt-date').value : ""
     };
-    const formattedDate = data.date ? data.date.split("-").reverse().join("/") : "dd/mm/yyyy";
-    const allTemps = [document.getElementById('temp-1'), document.getElementById('temp-2'), document.getElementById('temp-3')];
+    const fDate = data.date ? data.date.split("-").reverse().join("/") : "dd/mm/yyyy";
+    const eDate = data.exptDate ? data.exptDate.split("-").reverse().join("/") : "dd/mm/yyyy";
     
-    allTemps.forEach(t => {
+    const temps = [document.getElementById('temp-1'), document.getElementById('temp-2'), document.getElementById('temp-3')];
+    
+    temps.forEach(t => {
         t.querySelectorAll('.out-dept').forEach(el => el.innerText = data.dept.toUpperCase());
         t.querySelectorAll('.out-type-box').forEach(el => el.innerText = `[${data.type}]`);
-        t.querySelectorAll('.out-topic').forEach(el => el.innerText = data.topic || "Topic Name");
+        
+        // Lab logic
+        const labelText = data.type === "LAB REPORT" ? "Experiment Name" : "Topic";
+        t.querySelectorAll('.out-label').forEach(el => el.innerText = labelText);
+        
+        // Experiment No Line Logic
+        t.querySelectorAll('.out-lab-no-wrap').forEach(el => el.style.display = (data.type === "LAB REPORT" && data.exptNo) ? "block" : "none");
+        t.querySelectorAll('.out-expt-no').forEach(el => el.innerText = data.exptNo);
+        
+        // Date and visibility
+        t.querySelectorAll('.out-expt-date').forEach(el => el.innerText = eDate);
+        t.querySelectorAll('.out-expt-date-wrap').forEach(el => el.style.display = data.type === "LAB REPORT" ? "block" : "none");
+
+        t.querySelectorAll('.out-topic').forEach(el => el.innerText = data.topic || "");
+        t.querySelectorAll('.out-topic-wrap').forEach(el => el.style.display = data.topic ? "block" : "none");
+        
         t.querySelectorAll('.out-name').forEach(el => el.innerText = data.name || "Student Name");
         t.querySelectorAll('.out-roll').forEach(el => el.innerText = data.roll || "Roll No");
         t.querySelectorAll('.out-sem').forEach(el => el.innerText = data.sem);
@@ -406,32 +434,28 @@ function syncData() {
         t.querySelectorAll('.out-desig').forEach(el => el.innerText = data.desig || "Designation");
         t.querySelectorAll('.out-cno').forEach(el => el.innerText = data.cno || "No");
         t.querySelectorAll('.out-ctitle').forEach(el => el.innerText = data.ctitle || "Course Title Name");
-        t.querySelectorAll('.out-date').forEach(el => el.innerText = formattedDate);
-        t.querySelectorAll('.out-topic-wrap').forEach(el => el.style.visibility = data.topic ? "visible" : "hidden");
+        t.querySelectorAll('.out-date').forEach(el => el.innerText = fDate);
+        
         t.querySelectorAll('.out-sec-wrap').forEach(el => {
             el.style.display = data.sec ? "block" : "none";
             if(data.sec) el.querySelector('.out-sec').innerText = data.sec;
         });
     });
 
-    document.getElementById('mini-1').innerHTML = ''; document.getElementById('mini-1').appendChild(allTemps[0].cloneNode(true));
-    document.getElementById('mini-2').innerHTML = ''; document.getElementById('mini-2').appendChild(allTemps[1].cloneNode(true));
-    document.getElementById('mini-3').innerHTML = ''; document.getElementById('mini-3').appendChild(allTemps[2].cloneNode(true));
+    document.getElementById('mini-1').innerHTML = ''; document.getElementById('mini-1').appendChild(temps[0].cloneNode(true));
+    document.getElementById('mini-2').innerHTML = ''; document.getElementById('mini-2').appendChild(temps[1].cloneNode(true));
+    document.getElementById('mini-3').innerHTML = ''; document.getElementById('mini-3').appendChild(temps[2].cloneNode(true));
 }
 
 function downloadPDF(id) {
     const element = document.getElementById(`temp-${id}`);
     const type = document.getElementById('in-type').value;
-    const opt = {
-        margin: 0, filename: `RUET_Cover_V${id}_${type}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    const opt = { margin: 0, filename: `RUET_Cover_V${id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
     html2pdf().set(opt).from(element).save();
 }
 
 toggleSmartCourse();
+toggleLabFields();
 syncData();
 </script>
 </body>
