@@ -19,6 +19,7 @@
             --primary-color: #00d2ff;
             --secondary-color: #ff0055;
             --card-shadow: 0 25px 50px rgba(0,0,0,0.7);
+            --calendar-icon-filter: invert(1); /* Makes the calendar icon white */
         }
 
         body.light-mode {
@@ -30,6 +31,7 @@
             --input-border: #ccc;
             --label-color: #555;
             --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --calendar-icon-filter: none; /* Keeps original color */
         }
 
         body { 
@@ -49,77 +51,33 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         
-        .container { 
-            display: flex; flex-direction: column; align-items: center; 
-            gap: 40px; width: 100%; max-width: 1200px; 
-        }
-        
-        .glass-card { 
-            background: var(--glass-bg); backdrop-filter: blur(30px); 
-            -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); 
-            border-radius: 30px; padding: 30px; width: 100%; max-width: 900px; 
-            box-shadow: var(--card-shadow); 
-        }
-        
-        .lively-title { 
-            text-align: center; font-weight: 800; font-size: clamp(1.5rem, 5vw, 2.5rem); 
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; 
-        }
+        .container { display: flex; flex-direction: column; align-items: center; gap: 40px; width: 100%; max-width: 1200px; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: 30px; padding: 30px; width: 100%; max-width: 900px; box-shadow: var(--card-shadow); }
+        .lively-title { text-align: center; font-weight: 800; font-size: clamp(1.5rem, 5vw, 2.5rem); background: linear-gradient(45deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 30px; }
 
         .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
         .field { display: flex; flex-direction: column; }
         label { font-size: 11px; text-transform: uppercase; color: var(--label-color); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
         
-        input, select { 
-            padding: 12px; background: var(--input-bg); 
-            border: 1px solid var(--input-border); border-radius: 12px; 
-            color: var(--text-color); outline: none; font-size: 0.95rem; transition: 0.3s; 
-        }
-        
+        input, select { padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; color: var(--text-color); outline: none; font-size: 0.95rem; transition: 0.3s; }
         select option { background-color: var(--glass-bg); color: var(--text-color); }
-
-        .preview-gallery { 
-            display: flex; justify-content: center; flex-wrap: wrap; gap: 35px; 
-            width: 100%; max-width: 1200px; margin-top: 20px; 
-        }
-        .preview-item { 
-            background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 25px; padding: 20px; 
-            text-align: center; border: 1px solid var(--glass-border); width: 340px; 
-            box-shadow: var(--card-shadow); transition: 0.3s;
-            overflow: hidden;
-        }
         
-        .page-preview-container { 
-            width: 210mm; height: 297mm; background: white; 
-            transform: scale(0.14); transform-origin: top center;
-            position: relative; left: 50%; margin-left: -105mm;
-            margin-bottom: -255mm; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;
-        }
-        
-        .select-btn { 
-            width: 100%; padding: 14px; border: none; border-radius: 15px; 
-            background: linear-gradient(45deg, var(--primary-color), #3a7bd5); 
-            color: white; font-weight: 800; cursor: pointer; margin-top: 15px;
+        /* DATE PICKER FIX */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: var(--calendar-icon-filter);
+            cursor: pointer;
         }
 
-        .watermark-box {
-            position: absolute;
-            top: 2.10in; left: 50%;
-            transform: translateX(-50%);
-            width: 7.10in; height: 7.40in;
-            opacity: 0.25; z-index: 0;
-            pointer-events: none;
-        }
+        .preview-gallery { display: flex; justify-content: center; flex-wrap: wrap; gap: 35px; width: 100%; max-width: 1200px; margin-top: 20px; }
+        .preview-item { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 25px; padding: 20px; text-align: center; border: 1px solid var(--glass-border); width: 340px; box-shadow: var(--card-shadow); transition: 0.3s; overflow: hidden; }
+        .page-preview-container { width: 210mm; height: 297mm; background: white; transform: scale(0.14); transform-origin: top center; position: relative; left: 50%; margin-left: -105mm; margin-bottom: -255mm; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden; }
+        .select-btn { width: 100%; padding: 14px; border: none; border-radius: 15px; background: linear-gradient(45deg, var(--primary-color), #3a7bd5); color: white; font-weight: 800; cursor: pointer; margin-top: 15px; }
+
+        .watermark-box { position: absolute; top: 2.10in; left: 50%; transform: translateX(-50%); width: 7.10in; height: 7.40in; opacity: 0.25; z-index: 0; pointer-events: none; }
         .watermark-box img { width: 100%; height: 100%; object-fit: contain; }
 
         #pdf-hidden-storage { position: absolute; left: -9999px; }
-        .pdf-page { 
-            width: 210mm; height: 297mm; max-height: 297mm; background: white !important; color: black !important; 
-            padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; 
-            position: relative; overflow: hidden;
-        }
+        .pdf-page { width: 210mm; height: 297mm; max-height: 297mm; background: white !important; color: black !important; padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; position: relative; overflow: hidden; }
 
         .p1-logo { width: 240px; display: block; margin: 0 auto; }
         .p1-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid black; margin-top: 20px; position: relative; z-index: 1; }
@@ -150,7 +108,7 @@
             <div class="input-group">
                 <div class="field">
                     <label>Department</label>
-                    <select id="in-dept" onchange="syncData(); toggleSmartCourse();">
+                    <select id="in-dept" onchange="syncData(); toggleSmartCourse(); applyTeacherSelection();">
                         <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
                         <option value="Chemical Engineering">Chemical Engineering (ChE)</option>
                         <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
@@ -211,7 +169,11 @@
             </div>
 
             <div class="input-group">
-                <div class="field"><label>Teacher's Name</label><input type="text" id="in-tname" oninput="syncData()"></div>
+                <div class="field">
+                    <label>Teacher's Name</label>
+                    <input type="text" id="in-tname" list="teacher-list" oninput="applyTeacherSelection(); syncData();" placeholder="Type teacher's name...">
+                    <datalist id="teacher-list"></datalist>
+                </div>
                 <div class="field"><label>Designation</label><input type="text" id="in-desig" oninput="syncData()"></div>
                 <div class="field"><label>Course No.</label><input type="text" id="in-cno" oninput="syncData()"></div>
                 <div class="field"><label>Submission Date</label><input type="date" id="in-date" onchange="syncData()"></div>
@@ -369,10 +331,87 @@ const courseDatabase = {
     }
 };
 
+// FULL MECHANICAL TEACHER DATABASE FROM IMAGES
+const teachersDB = {
+    "Mechanical Engineering": [
+        {name: "Mohammad Uzzal Hossain Joardder", desig: "Professor"},
+        {name: "Dr. Mohammad Rofiqul Islam", desig: "Professor"},
+        {name: "Dr. Nirendra Nath Mustafi", desig: "Professor"},
+        {name: "Dr. Md. Emdadul Hoque", desig: "Professor"},
+        {name: "Dr. Md. Rokunuzzaman", desig: "Professor"},
+        {name: "Dr. Md. Nurul Islam", desig: "Professor"},
+        {name: "Dr. Mhia Md. Zaglul Shahadat", desig: "Professor"},
+        {name: "Dr. Md Rabiul Islam Sarker", desig: "Professor"},
+        {name: "Dr. Mohammad Shahed Hasan Khan Tushar", desig: "Professor"},
+        {name: "Dr. Shahajada Mahmudul Hasan", desig: "Professor"},
+        {name: "Dr. Mohammad U. H. Joardder", desig: "Professor"},
+        {name: "Dr. Barun Kumar Das", desig: "Professor"},
+        {name: "Dr. Md. Shazib Uddin", desig: "Professor"},
+        {name: "Dr. Md. Abdul Kader", desig: "Professor"},
+        {name: "Md. Wahedul Islam", desig: "Professor"},
+        {name: "Tasnuva Tabasshum Choudhury", desig: "Associate Professor"},
+        {name: "Asma-Ul-Husna", desig: "Associate Professor"},
+        {name: "Dr. Syed Mamun R Rasid", desig: "Associate Professor"},
+        {name: "Dr. Md. Abdur Rahim", desig: "Associate Professor"},
+        {name: "Dr. Monjur Mourshed", desig: "Associate Professor"},
+        {name: "Dr. Mahadi Hasan Masud", desig: "Associate Professor"},
+        {name: "Md. Riaz Pervez", desig: "Assistant Professor"},
+        {name: "Md Saiful Islam", desig: "Assistant Professor"},
+        {name: "Jannatul Ferdous", desig: "Assistant Professor"},
+        {name: "Sumaiya Sadika Tuly", desig: "Assistant Professor"},
+        {name: "Md. Golam Kibria", desig: "Assistant Professor"},
+        {name: "Pronob Das", desig: "Assistant Professor"},
+        {name: "Abdul Mojid Parvej", desig: "Assistant Professor"},
+        {name: "Md. Sanowar Hossain", desig: "Assistant Professor"},
+        {name: "Md. Nahid Hossain", desig: "Assistant Professor"},
+        {name: "Md. Bakhtierkhalzi", desig: "Assistant Professor"},
+        {name: "Miftahul Mobin Chowdhury Shabdik", desig: "Assistant Professor"},
+        {name: "Md. Mostafa Kamal", desig: "Assistant Professor"},
+        {name: "Mim Mashrur Ahmed", desig: "Assistant Professor"},
+        {name: "Durjoy Kumar Paul", desig: "Assistant Professor"},
+        {name: "Md. Rasel Ahmed", desig: "Lecturer"},
+        {name: "Md. Mahabur Rahaman", desig: "Lecturer"},
+        {name: "Md. Tanjeeb Hossen Akash", desig: "Lecturer"},
+        {name: "FAZLUR RASHID", desig: "Lecturer"},
+        {name: "Oishwarjya Ferdous", desig: "Lecturer"},
+        {name: "Easmin Sultana", desig: "Lecturer"},
+        {name: "Raihan Karal", desig: "Lecturer"},
+        {name: "SHAH MOHAMMED TAKRIM", desig: "Lecturer"},
+        {name: "Md. Hasibul Hasan Himel", desig: "Lecturer"},
+        {name: "Asma Akhter", desig: "Lecturer"}
+    ]
+};
+
 function toggleSmartCourse() {
-    const dept = document.getElementById('in-dept').value; const smartField = document.getElementById('smart-course-field');
+    const dept = document.getElementById('in-dept').value; 
+    const smartField = document.getElementById('smart-course-field');
+    
+    // Course Logic
     if (courseDatabase[dept]) { smartField.style.display = "block"; populateCourses(); }
     else { smartField.style.display = "none"; }
+    
+    // Teacher Logic
+    const datalist = document.getElementById('teacher-list');
+    datalist.innerHTML = '';
+    if(teachersDB[dept]){
+        teachersDB[dept].forEach(t => {
+            let opt = document.createElement('option');
+            opt.value = t.name;
+            datalist.appendChild(opt);
+        });
+    }
+}
+
+function applyTeacherSelection() {
+    const name = document.getElementById('in-tname').value;
+    const dept = document.getElementById('in-dept').value;
+    
+    if (teachersDB[dept]) {
+        const teacher = teachersDB[dept].find(t => t.name === name);
+        if (teacher) {
+            document.getElementById('in-desig').value = teacher.desig;
+        }
+    }
 }
 
 function populateCourses() {
