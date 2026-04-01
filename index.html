@@ -19,7 +19,7 @@
             --primary-color: #00d2ff;
             --secondary-color: #ff0055;
             --card-shadow: 0 25px 50px rgba(0,0,0,0.7);
-            --calendar-icon-filter: invert(1); /* Makes the calendar icon white */
+            --calendar-icon-filter: invert(1);
         }
 
         body.light-mode {
@@ -31,7 +31,7 @@
             --input-border: #ccc;
             --label-color: #555;
             --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --calendar-icon-filter: none; /* Keeps original color */
+            --calendar-icon-filter: none;
         }
 
         body { 
@@ -62,7 +62,6 @@
         input, select { padding: 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 12px; color: var(--text-color); outline: none; font-size: 0.95rem; transition: 0.3s; }
         select option { background-color: var(--glass-bg); color: var(--text-color); }
         
-        /* DATE PICKER FIX */
         input[type="date"]::-webkit-calendar-picker-indicator {
             filter: var(--calendar-icon-filter);
             cursor: pointer;
@@ -77,7 +76,9 @@
         .watermark-box img { width: 100%; height: 100%; object-fit: contain; }
 
         #pdf-hidden-storage { position: absolute; left: -9999px; }
-        .pdf-page { width: 210mm; height: 297mm; max-height: 297mm; background: white !important; color: black !important; padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; position: relative; overflow: hidden; }
+        
+        /* FIXED BLANK PAGE BUG: Reduced height slightly from 297mm to 296mm */
+        .pdf-page { width: 210mm; height: 296mm; max-height: 296mm; background: white !important; color: black !important; padding: 12mm 18mm; box-sizing: border-box; font-family: 'Times New Roman', serif; position: relative; overflow: hidden; }
 
         .p1-logo { width: 240px; display: block; margin: 0 auto; }
         .p1-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid black; margin-top: 20px; position: relative; z-index: 1; }
@@ -105,80 +106,82 @@
     <div class="glass-card">
         <h1 class="lively-title">Cover Page Generator - RUET</h1>
         <div class="input-form">
-            <div class="input-group">
-                <div class="field">
-                    <label>Department</label>
-                    <select id="in-dept" onchange="syncData(); toggleSmartCourse(); applyTeacherSelection();">
-                        <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
-                        <option value="Chemical Engineering">Chemical Engineering (ChE)</option>
-                        <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
-                        <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
-                        <option value="Civil Engineering">Civil Engineering (CE)</option>
-                        <option value="Mechatronics Engineering">Mechatronics Engineering (MTE)</option>
-                        <option value="Industrial & Production Engineering">Industrial & Production Engineering (IPE)</option>
-                        <option value="Ceramic & Metallurgical Engineering">Ceramic & Metallurgical Engineering (CME)</option>
-                        <option value="Materials Science & Engineering">Materials Science & Engineering (MSE)</option>
-                        <option value="Urban & Regional Planning">Urban & Regional Planning (URP)</option>
-                        <option value="Architecture">Architecture (Arch)</option>
-                        <option value="Building Engineering & Construction Management">Building Engineering & Construction (BECM)</option>
-                        <option value="Electrical & Computer Engineering">Electrical & Computer Engineering (ECE)</option>
-                        <option value="Electronics & Telecommunication Engineering">Electronics & Telecommunication (ETE)</option>
+            <form id="coverForm" autocomplete="on">
+                <div class="input-group">
+                    <div class="field">
+                        <label>Department</label>
+                        <select id="in-dept" name="department" onchange="syncData(); toggleSmartCourse(); applyTeacherSelection(); saveToLocal();">
+                            <option value="Mechanical Engineering">Mechanical Engineering (ME)</option>
+                            <option value="Chemical Engineering">Chemical Engineering (ChE)</option>
+                            <option value="Computer Science Engineering">Computer Science Engineering (CSE)</option>
+                            <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering (EEE)</option>
+                            <option value="Civil Engineering">Civil Engineering (CE)</option>
+                            <option value="Mechatronics Engineering">Mechatronics Engineering (MTE)</option>
+                            <option value="Industrial & Production Engineering">Industrial & Production Engineering (IPE)</option>
+                            <option value="Ceramic & Metallurgical Engineering">Ceramic & Metallurgical Engineering (CME)</option>
+                            <option value="Materials Science & Engineering">Materials Science & Engineering (MSE)</option>
+                            <option value="Urban & Regional Planning">Urban & Regional Planning (URP)</option>
+                            <option value="Architecture">Architecture (Arch)</option>
+                            <option value="Building Engineering & Construction Management">Building Engineering & Construction (BECM)</option>
+                            <option value="Electrical & Computer Engineering">Electrical & Computer Engineering (ECE)</option>
+                            <option value="Electronics & Telecommunication Engineering">Electronics & Telecommunication (ETE)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Report Type</label>
+                        <select id="in-type" name="reportType" onchange="syncData(); toggleLabFields(); saveToLocal();">
+                            <option value="ASSIGNMENT">Assignment</option>
+                            <option value="LAB REPORT">Lab Report</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="lab-fields" class="input-group" style="display:none;">
+                    <div class="field"><label>Experiment No.</label><input type="text" id="in-expt-no" name="exptNo" placeholder="Ex: 01" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                    <div class="field"><label>Date of Experiment</label><input type="date" id="in-expt-date" name="exptDate" onchange="syncData(); saveToLocal();"></div>
+                </div>
+
+                <div class="field" style="margin-bottom:15px;"><label id="topic-label">Topic Name (Optional)</label><input type="text" id="in-topic" name="topicName" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                
+                <div class="input-group">
+                    <div class="field"><label>Your Name</label><input type="text" id="in-name" name="studentName" oninput="syncData(); saveToLocal();" autocomplete="name"></div>
+                    <div class="field"><label>Roll Number</label><input type="text" id="in-roll" name="studentRoll" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                    <div class="field"><label>Section</label><input type="text" id="in-sec" name="studentSec" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                    <div class="field">
+                        <label>Semester</label>
+                        <select id="in-sem" name="studentSem" onchange="syncData(); populateCourses(); saveToLocal();">
+                            <option value="1st Year odd Semester">1st Year Odd Semester</option>
+                            <option value="1st Year even Semester">1st Year Even Semester</option>
+                            <option value="2nd Year odd Semester">2nd Year Odd Semester</option>
+                            <option value="2nd Year even Semester">2nd Year Even Semester</option>
+                            <option value="3rd Year odd Semester">3rd Year Odd Semester</option>
+                            <option value="3rd Year even Semester">3rd Year Even Semester</option>
+                            <option value="4th Year odd Semester">4th Year Odd Semester</option>
+                            <option value="4th Year even Semester">4th Year Even Semester</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>Session</label><input type="text" id="in-sess" name="studentSess" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                </div>
+
+                <div id="smart-course-field" class="field" style="display:none; margin-bottom:15px;">
+                    <label>Select Course</label>
+                    <select id="smart-course-select" onchange="applySmartCourse()">
+                        <option value="">-- Choose from Database --</option>
                     </select>
                 </div>
-                <div class="field">
-                    <label>Report Type</label>
-                    <select id="in-type" onchange="syncData(); toggleLabFields();">
-                        <option value="ASSIGNMENT">Assignment</option>
-                        <option value="LAB REPORT">Lab Report</option>
-                    </select>
+
+                <div class="input-group">
+                    <div class="field">
+                        <label>Teacher's Name</label>
+                        <input type="text" id="in-tname" name="teacherName" list="teacher-list" oninput="applyTeacherSelection(); syncData(); saveToLocal();" placeholder="Type teacher's name..." autocomplete="on">
+                        <datalist id="teacher-list"></datalist>
+                    </div>
+                    <div class="field"><label>Designation</label><input type="text" id="in-desig" name="teacherDesig" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                    <div class="field"><label>Course No.</label><input type="text" id="in-cno" name="courseNo" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+                    <div class="field"><label>Submission Date</label><input type="date" id="in-date" name="subDate" onchange="syncData(); saveToLocal();"></div>
                 </div>
-            </div>
-
-            <div id="lab-fields" class="input-group" style="display:none;">
-                <div class="field"><label>Experiment No.</label><input type="text" id="in-expt-no" placeholder="Ex: 01" oninput="syncData()"></div>
-                <div class="field"><label>Date of Experiment</label><input type="date" id="in-expt-date" onchange="syncData()"></div>
-            </div>
-
-            <div class="field" style="margin-bottom:15px;"><label id="topic-label">Topic Name (Optional)</label><input type="text" id="in-topic" oninput="syncData()"></div>
-            
-            <div class="input-group">
-                <div class="field"><label>Your Name</label><input type="text" id="in-name" oninput="syncData()"></div>
-                <div class="field"><label>Roll Number</label><input type="text" id="in-roll" oninput="syncData()"></div>
-                <div class="field"><label>Section</label><input type="text" id="in-sec" oninput="syncData()"></div>
-                <div class="field">
-                    <label>Semester</label>
-                    <select id="in-sem" onchange="syncData(); populateCourses();">
-                        <option value="1st Year odd Semester">1st Year Odd Semester</option>
-                        <option value="1st Year even Semester">1st Year Even Semester</option>
-                        <option value="2nd Year odd Semester">2nd Year Odd Semester</option>
-                        <option value="2nd Year even Semester">2nd Year Even Semester</option>
-                        <option value="3rd Year odd Semester">3rd Year Odd Semester</option>
-                        <option value="3rd Year even Semester">3rd Year Even Semester</option>
-                        <option value="4th Year odd Semester">4th Year Odd Semester</option>
-                        <option value="4th Year even Semester">4th Year Even Semester</option>
-                    </select>
-                </div>
-                <div class="field"><label>Session</label><input type="text" id="in-sess" oninput="syncData()"></div>
-            </div>
-
-            <div id="smart-course-field" class="field" style="display:none; margin-bottom:15px;">
-                <label>Select Course</label>
-                <select id="smart-course-select" onchange="applySmartCourse()">
-                    <option value="">-- Choose from Database --</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <div class="field">
-                    <label>Teacher's Name</label>
-                    <input type="text" id="in-tname" list="teacher-list" oninput="applyTeacherSelection(); syncData();" placeholder="Type teacher's name...">
-                    <datalist id="teacher-list"></datalist>
-                </div>
-                <div class="field"><label>Designation</label><input type="text" id="in-desig" oninput="syncData()"></div>
-                <div class="field"><label>Course No.</label><input type="text" id="in-cno" oninput="syncData()"></div>
-                <div class="field"><label>Submission Date</label><input type="date" id="in-date" onchange="syncData()"></div>
-            </div>
-            <div class="field" style="margin-top:10px;"><label>Course Title</label><input type="text" id="in-ctitle" oninput="syncData()"></div>
+                <div class="field" style="margin-top:10px;"><label>Course Title</label><input type="text" id="in-ctitle" name="courseTitle" oninput="syncData(); saveToLocal();" autocomplete="on"></div>
+            </form>
         </div>
     </div>
 
@@ -331,7 +334,6 @@ const courseDatabase = {
     }
 };
 
-// FULL MECHANICAL TEACHER DATABASE FROM IMAGES
 const teachersDB = {
     "Mechanical Engineering": [
         {name: "Mohammad Uzzal Hossain Joardder", desig: "Professor"},
@@ -355,7 +357,7 @@ const teachersDB = {
         {name: "Dr. Md. Abdur Rahim", desig: "Associate Professor"},
         {name: "Dr. Monjur Mourshed", desig: "Associate Professor"},
         {name: "Dr. Mahadi Hasan Masud", desig: "Associate Professor"},
-        {name: "Md. Riaz Pervez", desig: "Assistant Professor"},
+        {name: "Md. Riaz Pervez", "desig": "Assistant Professor"},
         {name: "Md Saiful Islam", desig: "Assistant Professor"},
         {name: "Jannatul Ferdous", desig: "Assistant Professor"},
         {name: "Sumaiya Sadika Tuly", desig: "Assistant Professor"},
@@ -382,15 +384,28 @@ const teachersDB = {
     ]
 };
 
+function loadFromLocal() {
+    const fields = ['in-dept', 'in-type', 'in-expt-no', 'in-topic', 'in-name', 'in-roll', 'in-sec', 'in-sem', 'in-sess', 'in-tname', 'in-desig', 'in-cno', 'in-ctitle'];
+    fields.forEach(id => {
+        const val = localStorage.getItem(`ruet_cover_${id}`);
+        if (val) document.getElementById(id).value = val;
+    });
+}
+
+function saveToLocal() {
+    const fields = ['in-dept', 'in-type', 'in-expt-no', 'in-topic', 'in-name', 'in-roll', 'in-sec', 'in-sem', 'in-sess', 'in-tname', 'in-desig', 'in-cno', 'in-ctitle'];
+    fields.forEach(id => {
+        localStorage.setItem(`ruet_cover_${id}`, document.getElementById(id).value);
+    });
+}
+
 function toggleSmartCourse() {
     const dept = document.getElementById('in-dept').value; 
     const smartField = document.getElementById('smart-course-field');
     
-    // Course Logic
     if (courseDatabase[dept]) { smartField.style.display = "block"; populateCourses(); }
     else { smartField.style.display = "none"; }
     
-    // Teacher Logic
     const datalist = document.getElementById('teacher-list');
     datalist.innerHTML = '';
     if(teachersDB[dept]){
@@ -427,7 +442,7 @@ function populateCourses() {
 
 function applySmartCourse() {
     const val = document.getElementById('smart-course-select').value;
-    if (val) { const course = JSON.parse(val); document.getElementById('in-cno').value = course.no; document.getElementById('in-ctitle').value = course.title; syncData(); }
+    if (val) { const course = JSON.parse(val); document.getElementById('in-cno').value = course.no; document.getElementById('in-ctitle').value = course.title; syncData(); saveToLocal(); }
 }
 
 function syncData() {
@@ -450,15 +465,12 @@ function syncData() {
         t.querySelectorAll('.out-dept').forEach(el => el.innerText = data.dept.toUpperCase());
         t.querySelectorAll('.out-type-box').forEach(el => el.innerText = `[${data.type}]`);
         
-        // Lab logic
         const labelText = data.type === "LAB REPORT" ? "Experiment Name" : "Topic";
         t.querySelectorAll('.out-label').forEach(el => el.innerText = labelText);
         
-        // Experiment No Line Logic
         t.querySelectorAll('.out-lab-no-wrap').forEach(el => el.style.display = (data.type === "LAB REPORT" && data.exptNo) ? "block" : "none");
         t.querySelectorAll('.out-expt-no').forEach(el => el.innerText = data.exptNo);
         
-        // Date and visibility
         t.querySelectorAll('.out-expt-date').forEach(el => el.innerText = eDate);
         t.querySelectorAll('.out-expt-date-wrap').forEach(el => el.style.display = data.type === "LAB REPORT" ? "block" : "none");
 
@@ -488,14 +500,25 @@ function syncData() {
 
 function downloadPDF(id) {
     const element = document.getElementById(`temp-${id}`);
-    const type = document.getElementById('in-type').value;
-    const opt = { margin: 0, filename: `RUET_Cover_V${id}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 3, useCORS: true, scrollY: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+    
+    const opt = { 
+        margin: 0, 
+        filename: `RUET_Cover_V${id}.pdf`, 
+        image: { type: 'jpeg', quality: 0.98 }, 
+        html2canvas: { scale: 3, useCORS: true, scrollY: 0 }, 
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } 
+    };
+    
     html2pdf().set(opt).from(element).save();
 }
 
-toggleSmartCourse();
-toggleLabFields();
-syncData();
+window.onload = () => {
+    loadFromLocal();
+    toggleSmartCourse();
+    toggleLabFields();
+    syncData();
+};
 </script>
 </body>
 </html>
