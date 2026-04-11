@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="ibhE2mTLhcDxQz5hRb4i9CzPxZCmVSvFqwCjvTjk2H8" />
     <title>RUET Cover Page Generator - Multi Preview Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -227,7 +226,7 @@
             <div><b>Course No:</b> <span class="out-cno"></span></div>
             <div><b>Course Title:</b> <span class="out-ctitle"></span></div>
             <div class="out-expt-date-wrap"><b>Date of Experiment:</b> <span class="out-expt-date"></span></div>
-            <div><b>Submission Date:</b> <span class="out-date"></span></div>
+            <div class="out-sub-date-wrap"><b>Submission Date:</b> <span class="out-date"></span></div>
         </div>
     </div>
 
@@ -258,7 +257,7 @@
         <div class="p2-center-info">RUET</div>
         <div class="p2-footer-date">
             <div class="out-expt-date-wrap" style="margin-bottom:5px;">Date of Experiment: <span class="out-expt-date"></span></div>
-            <div>Date of Submission: <span class="out-date"></span></div>
+            <div class="out-sub-date-wrap">Date of Submission: <span class="out-date"></span></div>
         </div>
     </div>
 
@@ -290,7 +289,7 @@
         <div class="p2-center-info">RUET</div>
         <div class="p2-footer-date">
             <div class="out-expt-date-wrap" style="margin-bottom:5px;">Date of Experiment: <span class="out-expt-date"></span></div>
-            <div>Date of Submission: <span class="out-date"></span></div>
+            <div class="out-sub-date-wrap">Date of Submission: <span class="out-date"></span></div>
         </div>
     </div>
 </div>
@@ -472,8 +471,9 @@ function syncData() {
         t.querySelectorAll('.out-lab-no-wrap').forEach(el => el.style.display = (data.type === "LAB REPORT" && data.exptNo) ? "block" : "none");
         t.querySelectorAll('.out-expt-no').forEach(el => el.innerText = data.exptNo);
         
+        // ADDED CONDITION: Hide Date of Experiment if no input
         t.querySelectorAll('.out-expt-date').forEach(el => el.innerText = eDate);
-        t.querySelectorAll('.out-expt-date-wrap').forEach(el => el.style.display = data.type === "LAB REPORT" ? "block" : "none");
+        t.querySelectorAll('.out-expt-date-wrap').forEach(el => el.style.display = (data.type === "LAB REPORT" && data.exptDate) ? "block" : "none");
 
         t.querySelectorAll('.out-topic').forEach(el => el.innerText = data.topic || "");
         t.querySelectorAll('.out-topic-wrap').forEach(el => el.style.display = data.topic ? "block" : "none");
@@ -486,7 +486,10 @@ function syncData() {
         t.querySelectorAll('.out-desig').forEach(el => el.innerText = data.desig || "Designation");
         t.querySelectorAll('.out-cno').forEach(el => el.innerText = data.cno || "No");
         t.querySelectorAll('.out-ctitle').forEach(el => el.innerText = data.ctitle || "Course Title Name");
+        
+        // ADDED CONDITION: Hide Submission Date if no input
         t.querySelectorAll('.out-date').forEach(el => el.innerText = fDate);
+        t.querySelectorAll('.out-sub-date-wrap').forEach(el => el.style.display = data.date ? "block" : "none");
         
         t.querySelectorAll('.out-sec-wrap').forEach(el => {
             el.style.display = data.sec ? "block" : "none";
